@@ -1,0 +1,72 @@
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: #f7f8fc;
+  color: #111827;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button, input { font: inherit; }
+
+button { cursor: pointer; }
+
+.container {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.hero {
+  min-height: 100vh;
+  padding: 24px 0 64px;
+  background: radial-gradient(circle at 50% 0%, #dbeafe 0, #f7f8fc 42%, #f7f8fc 100%);
+}
+
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; }
+
+.flag { font-size: 28px; }
+
+.badge { padding: 8px 12px; border-radius: 999px; background: #fff; border: 1px solid #e5e7eb; color: #4b5563; font-size: 13px; }
+
+.heroContent { max-width: 820px; margin: 130px auto 0; text-align: center; }
+
+.eyebrow { color: #2563eb; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 13px; }
+
+.title { margin: 14px 0; font-size: clamp(42px, 8vw, 76px); line-height: .98; letter-spacing: -0.05em; }
+
+.subtitle { max-width: 650px; margin: 0 auto 32px; color: #6b7280; font-size: 18px; line-height: 1.6; }
+
+.search { display: flex; gap: 10px; padding: 8px; max-width: 760px; margin: 0 auto; background: white; border: 1px solid #e5e7eb; border-radius: 20px; box-shadow: 0 20px 60px rgba(15, 23, 42, .1); }
+
+.search input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 16px; color: #111827; background: transparent; }
+
+.primary { border: 0; border-radius: 14px; padding: 0 22px; background: #2563eb; color: white; font-weight: 700; }
+
+.section { padding-top: 56px; }
+
+.sectionTitle { text-align: left; font-size: 20px; margin-bottom: 18px; }
+
+.categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+.category { padding: 20px; border: 1px solid #e5e7eb; border-radius: 18px; background: rgba(255,255,255,.82); text-align: left; transition: transform .2s ease, box-shadow .2s ease; }
+.category:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15,23,42,.08); }
+.categoryIcon { font-size: 25px; }
+.categoryName { margin-top: 10px; font-weight: 700; }
+.categoryText { margin-top: 5px; color: #6b7280; font-size: 13px; }
+
+@media (max-width: 700px) {
+  .heroContent { margin-top: 90px; }
+  .categories { grid-template-columns: 1fr 1fr; }
+  .search { border-radius: 16px; }
+  .primary { padding: 0 16px; }
+}
+
+@media (max-width: 430px) {
+  .categories { grid-template-columns: 1fr; }
+  .search { flex-direction: column; }
+  .primary { min-height: 48px; }
+}
