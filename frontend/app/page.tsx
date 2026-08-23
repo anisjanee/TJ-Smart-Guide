@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from "react";
 
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://tj-smart-guide.onrender.com").replace(/\/$/, "");
+
 const categories = [
   ["🪪", "Документы", "Паспорта, справки и госуслуги"],
   ["🎓", "Образование", "Школы, университеты и поступление"],
@@ -24,16 +26,18 @@ export default function Home() {
     setAnswer("");
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const response = await fetch(`${baseUrl}/api/chat`, {
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
       });
+
+      if (!response.ok) throw new Error(`API ${response.status}`);
+
       const data = await response.json();
       setAnswer(data.answer || "Не удалось получить ответ.");
     } catch {
-      setAnswer("Не удалось подключиться к серверу. Проверьте, запущен ли backend.");
+      setAnswer("Не удалось подключиться к TJ Smart Guide API. Проверьте статус Render.");
     } finally {
       setLoading(false);
     }
@@ -75,7 +79,7 @@ export default function Home() {
             <div className="sectionTitle">Популярные категории</div>
             <div className="categories">
               {categories.map(([icon, name, description]) => (
-                <button className="category" key={name} onClick={() => setQuestion(name)}>
+                <button className="category" key={name} type="button" onClick={() => setQuestion(name)}>
                   <div className="categoryIcon">{icon}</div>
                   <div className="categoryName">{name}</div>
                   <div className="categoryText">{description}</div>
