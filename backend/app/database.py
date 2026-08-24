@@ -1,5 +1,6 @@
 import os
 from contextlib import contextmanager
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
@@ -13,12 +14,19 @@ def get_database_url() -> str | None:
     url = os.getenv("DATABASE_URL")
     if not url:
         return None
-    # Render provides postgres:// on some setups; SQLAlchemy expects postgresql://.
+
+    # Render may provide postgres:// or postgresql:// URLs.
     if url.startswith("postgres://"):
         url = "postgresql+psycopg://" + url[len("postgres://") :]
     elif url.startswith("postgresql://"):
         url = "postgresql+psycopg://" + url[len("postgresql://") :]
-    return url
+
+    # Render Postgres requires TLS. Preserve any existing query parameters
+    # while making the requirement explicit for psycopg.
+    parts = urlsplit(url)
+    params = dict(parse_qsl(parts.query, keep_blank_values=True))
+    params.setdefault("sslmode", "require")
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(params), parts.fragment))
 
 
 def build_session_factory():
