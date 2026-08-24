@@ -9,7 +9,7 @@ from sqlalchemy import func, or_, select, text
 
 from .database import Base, SessionLocal
 from .models import Category, Feedback, KnowledgeArticle, QuestionLog
-
+from .official_data import OFFICIAL_ARTICLES
 
 SYSTEM_PROMPT = """
 Ты — TJ Smart Guide, цифровой помощник по Таджикистану.
@@ -37,6 +37,15 @@ SEED_ARTICLES = [
 ]
 
 
+def seed_article(session, category_slug, title, summary, content, source_name, source_url):
+    category = session.scalar(select(Category).where(Category.slug == category_slug))
+    if not category:
+        return
+    exists = session.scalar(select(KnowledgeArticle).where(KnowledgeArticle.title == title))
+    if not exists:
+        session.add(KnowledgeArticle(category_id=category.id, title=title, summary=summary, content=content, source_name=source_name, source_url=source_url))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if SessionLocal is not None:
@@ -49,17 +58,15 @@ async def lifespan(app: FastAPI):
                     session.add(Category(name=name, slug=slug, description=description, icon=icon))
             session.commit()
 
-            for slug, title, summary, content, source_name, source_url in SEED_ARTICLES:
-                category = session.scalar(select(Category).where(Category.slug == slug))
-                if category:
-                    exists = session.scalar(select(KnowledgeArticle).where(KnowledgeArticle.title == title))
-                    if not exists:
-                        session.add(KnowledgeArticle(category_id=category.id, title=title, summary=summary, content=content, source_name=source_name, source_url=source_url))
+            for article_data in SEED_ARTICLES:
+                seed_article(session, *article_data)
+            for article in OFFICIAL_ARTICLES:
+                seed_article(session, article["category"], article["title"], article["summary"], article["content"], article["source_name"], article["source_url"])
             session.commit()
     yield
 
 
-app = FastAPI(title="TJ Smart Guide API", version="0.4.0", lifespan=lifespan)
+app = FastAPI(title="TJ Smart Guide API", version="0.5.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
