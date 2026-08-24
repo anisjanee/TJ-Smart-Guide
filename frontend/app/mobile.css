@@ -1,1 +1,92 @@
-@media (max-width:700px){html{-webkit-text-size-adjust:100%}body{overflow-x:hidden}.container,.subContainer{width:calc(100% - 24px)}.hero{min-height:auto;padding-top:14px;padding-bottom:48px}.nav{gap:10px;align-items:flex-start}.brand{font-size:18px;white-space:nowrap}.flag{font-size:24px}.badge{font-size:12px;padding:7px 10px}.heroContent{margin-top:68px;max-width:100%}.title{font-size:clamp(40px,13vw,58px);letter-spacing:-.04em}.subtitle{font-size:16px;line-height:1.5;margin-bottom:24px}.search,.knowledgeSearch{width:100%;border-radius:16px}.search input,.knowledgeSearch input{width:100%;min-height:48px;padding:14px;font-size:16px}.primary,.secondary{min-height:48px;padding:0 16px}.section{padding-top:42px}.sectionTitle{font-size:19px}.categories,.knowledgeList,.statsGrid,.guideGrid,.featureGrid{grid-template-columns:1fr 1fr}.category,.knowledgeCard{min-width:0}.answerCard{padding:17px;border-radius:15px;overflow-wrap:anywhere}.sourceLink{overflow-wrap:anywhere}.feedback{gap:7px}.feedback button{flex:1;min-width:120px;min-height:44px}.sourceButton{width:100%;justify-content:center;text-align:center;min-height:46px}.subPage{padding-top:14px;padding-bottom:56px}.subNav{margin-bottom:40px;gap:10px;flex-wrap:wrap}.pageHeader{margin-bottom:24px}.pageHeader h1{font-size:clamp(36px,11vw,54px);overflow-wrap:anywhere}.pageHeader p{font-size:16px}.guideCard,.featureCard{padding:18px;border-radius:17px}.guideCard h2,.featureCard h2{font-size:19px}.guideCard p,.featureCard p,.guideCard li{font-size:14px}.actionBox{overflow-wrap:anywhere}.planChooser{display:grid;grid-template-columns:1fr}.planChoice{width:100%;text-align:left;min-height:46px}.planInput{align-items:stretch;flex-direction:column;padding:6px}.planInput input{min-height:48px}.planInput span{padding:0 10px 8px;text-align:right}.planCard{padding:18px;border-radius:18px}.planCard li{grid-template-columns:30px 1fr;padding:12px;gap:9px}.planCard li b{width:28px;height:28px}.adminPage{min-height:100dvh;padding:20px 12px 48px}.adminHeader,.adminCardTitle,.articleRow{align-items:stretch;flex-direction:column}.adminActions{display:grid;grid-template-columns:1fr}.adminActions a,.adminActions button,.adminCardTitle>button{width:100%;text-align:center;min-height:44px}.adminCard{padding:16px}.formTwo{grid-template-columns:1fr}.articleRow{padding:14px}.rowActions{display:grid;grid-template-columns:1fr 1fr}.rowActions button{width:100%;min-height:44px}}@media(max-width:430px){.container,.subContainer{width:calc(100% - 20px)}.heroContent{margin-top:48px}.title{font-size:clamp(38px,12.5vw,52px)}.subtitle{font-size:15px}.categories,.knowledgeList,.statsGrid,.guideGrid,.featureGrid{grid-template-columns:1fr}.category,.knowledgeCard{padding:16px}.categoryIcon{font-size:22px}.categoryName{font-size:15px}.categoryText,.knowledgeCard p{font-size:12px}.pageHeader h1{font-size:clamp(34px,12vw,48px)}.pageHeader p{font-size:15px}.guideCard,.featureCard{padding:16px}.guideCard h2,.featureCard h2{font-size:18px}.toast{max-width:calc(100% - 20px);text-align:center}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* Production mobile layout: touch-first, no horizontal overflow, readable spacing */
+@media (max-width:700px){
+  html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+  body{overflow-x:hidden;width:100%;min-width:0}
+  .container,.subContainer{width:calc(100% - 24px);max-width:none}
+  .hero{min-height:auto;padding:12px 0 48px}
+  .nav{display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%}
+  .brandButton{align-self:flex-start;min-height:44px;display:inline-flex;align-items:center}
+  .brand{font-size:18px;white-space:nowrap}
+  .flag{font-size:24px}
+  .nav>.adminActions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .nav>.adminActions .badge{width:100%;min-width:0;min-height:44px;padding:9px 8px;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.2;font-size:12px;border-radius:12px}
+  .heroContent{margin-top:48px;max-width:100%;width:100%}
+  .eyebrow{font-size:11px}
+  .title{font-size:clamp(38px,12.5vw,54px);line-height:1;letter-spacing:-.045em;overflow-wrap:anywhere}
+  .subtitle{font-size:15px;line-height:1.55;margin:18px auto 22px;max-width:620px}
+  .search,.knowledgeSearch{width:100%;max-width:none;display:flex;flex-direction:column;gap:6px;padding:6px;border-radius:16px}
+  .search input,.knowledgeSearch input{width:100%;min-width:0;min-height:50px;padding:13px 12px;font-size:16px;line-height:1.35}
+  .primary,.secondary{width:100%;min-height:50px;padding:0 16px;border-radius:12px;font-size:15px}
+  .statusMessage,.errorMessage{width:100%;font-size:13px;line-height:1.45}
+  .answerCard{width:100%;padding:16px;border-radius:15px;overflow-wrap:anywhere;word-break:break-word}
+  .answerCard p{font-size:14px;line-height:1.6}
+  .sourceLink{overflow-wrap:anywhere;word-break:break-word;line-height:1.45}
+  .feedback{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .feedback span{grid-column:1/-1}
+  .feedback button{width:100%;min-width:0;min-height:46px}
+  .section{padding-top:40px}
+  .sectionTitle{font-size:19px;margin-bottom:14px}
+  .sectionHint{font-size:13px;line-height:1.5}
+  .categories,.knowledgeList,.statsGrid,.guideGrid,.featureGrid{grid-template-columns:1fr 1fr;gap:9px}
+  .category,.knowledgeCard{min-width:0;width:100%;padding:15px;border-radius:15px}
+  .categoryIcon{font-size:23px}
+  .categoryName{font-size:14px;line-height:1.3}
+  .categoryText,.knowledgeCard p{font-size:12px;line-height:1.45}
+  .knowledgeCard h3{font-size:15px;line-height:1.3}
+  .knowledgeCard a{font-size:12px;overflow-wrap:anywhere}
+  .subPage{padding:12px 0 56px;min-height:100dvh}
+  .subNav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:32px;gap:8px}
+  .subNav .brand{font-size:16px}
+  .pageHeader{width:100%;margin-bottom:22px}
+  .pageHeader h1{font-size:clamp(34px,11.5vw,50px);line-height:1.03;overflow-wrap:anywhere}
+  .pageHeader p{font-size:15px;line-height:1.55}
+  .pageSearch{width:100%;margin-bottom:16px}
+  .pageSearch input{min-height:50px;font-size:16px}
+  .guideCard,.featureCard{padding:16px;border-radius:16px}
+  .guideCard h2,.featureCard h2{font-size:18px;line-height:1.3}
+  .guideCard p,.featureCard p,.guideCard li{font-size:14px;line-height:1.55}
+  .actionBox{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+  .sourceButton{width:100%;justify-content:center;text-align:center;min-height:46px}
+  .verified{line-height:1.4}
+  .planChooser{display:grid;grid-template-columns:1fr;gap:8px}
+  .planChoice{width:100%;text-align:left;min-height:48px}
+  .planInput{display:flex;flex-direction:column;align-items:stretch;padding:6px;gap:0}
+  .planInput input{width:100%;min-height:50px;font-size:16px}
+  .planInput span{padding:6px 10px 8px;text-align:left}
+  .planCard{width:100%;padding:17px;border-radius:17px}
+  .planCard li{grid-template-columns:30px 1fr;padding:12px;gap:9px}
+  .planCard li b{width:28px;height:28px}
+  .planCard li span{font-size:14px}
+  .adminPage{min-height:100dvh;padding:18px 10px 48px}
+  .adminHeader,.adminCardTitle,.articleRow{align-items:stretch;flex-direction:column}
+  .adminActions{display:grid;grid-template-columns:1fr;gap:8px}
+  .adminActions a,.adminActions button,.adminCardTitle>button{width:100%;text-align:center;min-height:46px}
+  .adminCard{padding:15px;border-radius:16px}
+  .statsGrid{grid-template-columns:1fr 1fr}
+  .formTwo{grid-template-columns:1fr}
+  .articleRow{padding:14px}
+  .rowActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .rowActions button{width:100%;min-height:44px}
+  .toast{left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));width:auto;max-width:none;transform:none;text-align:center}
+}
+@media(max-width:430px){
+  .container,.subContainer{width:calc(100% - 20px)}
+  .nav>.adminActions{grid-template-columns:1fr 1fr}
+  .heroContent{margin-top:40px}
+  .title{font-size:clamp(36px,12.5vw,50px)}
+  .subtitle{font-size:14px}
+  .categories,.knowledgeList,.guideGrid,.featureGrid{grid-template-columns:1fr}
+  .statsGrid{grid-template-columns:1fr 1fr}
+  .category,.knowledgeCard,.guideCard,.featureCard{padding:15px}
+  .categoryName,.knowledgeCard h3{font-size:15px}
+  .categoryText,.knowledgeCard p{font-size:12px}
+  .pageHeader h1{font-size:clamp(32px,12vw,46px)}
+}
+@media(max-width:340px){
+  .container,.subContainer{width:calc(100% - 16px)}
+  .nav>.adminActions{grid-template-columns:1fr}
+  .brand{font-size:16px}
+  .title{font-size:34px}
+  .categories,.knowledgeList,.statsGrid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
