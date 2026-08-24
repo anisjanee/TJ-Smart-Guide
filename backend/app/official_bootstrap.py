@@ -4,6 +4,15 @@ from .database import Base, SessionLocal
 from .models import Category, KnowledgeArticle
 
 
+CATEGORY_SEEDS = [
+    ("Документы", "documents", "Паспорта, справки, регистрация и другие документы", "📄"),
+    ("Образование", "education", "Школы, университеты, обучение и поступление", "🎓"),
+    ("Работа", "jobs", "Поиск работы, навыки и трудовые вопросы", "💼"),
+    ("Бизнес", "business", "Предпринимательство, регистрация и полезные сервисы", "🏢"),
+    ("Госуслуги", "government", "Государственные услуги и официальные источники", "🏛️"),
+    ("Повседневная жизнь", "life", "Полезная информация для повседневных задач", "🏠"),
+]
+
 OFFICIAL_ARTICLES = [
     {
         "category": "government",
@@ -41,7 +50,7 @@ OFFICIAL_ARTICLES = [
         "category": "jobs",
         "title": "Работа и занятость: официальный государственный источник",
         "summary": "Официальная информация Министерства труда, миграции и занятости населения Республики Таджикистан.",
-        "content": "Министерство отвечает за государственную политику и нормативное регулирование в сферах труда, рынка труда, занятости, миграции, профессионального обучения и содействия обеспечению граждан рабочими местами. TJ Smart Guide использует материалы министерства как источник для справочной информации по трудовым вопросам и должен показывать пользователю первоисточник.",
+        "content": "Министерство отвечает за государственную политику и нормативное регулирование в сферах труда, рынка труда, занятости, миграции, профессионального обучения и содействия обеспечению граждан рабочими местами. TJ Smart Guide использует материалы министерства как источник для справочной информации по трудовым вопросам и показывает пользователю первоисточник.",
         "source_name": "Министерство труда, миграции и занятости населения РТ",
         "source_url": "https://egov.tj/site/mehnat-tjk?lang=ru",
     },
@@ -57,7 +66,7 @@ OFFICIAL_ARTICLES = [
         "category": "government",
         "title": "Цифровая инфраструктура государственных услуг",
         "summary": "Официальная информация о едином портале госуслуг и других государственных цифровых системах.",
-        "content": "Официальный ресурс ОАО «Удостоверяющие центры, государственные услуги и разработка цифровых программ» описывает проекты цифровизации, включая единый портал государственных услуг, электронный документооборот, единый реестр адресов, единый платёжный модуль, мобильное приложение ИМЗО и реестр населения. TJ Smart Guide должен использовать эти сведения как навигационный слой, а не выдавать себя за государственный портал.",
+        "content": "Официальный ресурс ОАО «Удостоверяющие центры, государственные услуги и разработка цифровых программ» описывает проекты цифровизации, включая единый портал государственных услуг, электронный документооборот, единый реестр адресов, единый платёжный модуль, мобильное приложение ИМЗО и реестр населения. TJ Smart Guide использует эти сведения как навигационный слой, а не выдаёт себя за государственный портал.",
         "source_name": "ОАО «Удостоверяющие центры, государственные услуги и разработка цифровых программ»",
         "source_url": "https://egov.tj/site/jsc-cpd?lang=ru",
     },
@@ -80,24 +89,24 @@ def seed_official_articles() -> None:
     Base.metadata.create_all(bind=engine)
 
     with SessionLocal() as session:
+        for name, slug, description, icon in CATEGORY_SEEDS:
+            if session.scalar(select(Category).where(Category.slug == slug)) is None:
+                session.add(Category(name=name, slug=slug, description=description, icon=icon))
+        session.commit()
+
         for item in OFFICIAL_ARTICLES:
             category = session.scalar(select(Category).where(Category.slug == item["category"]))
             if category is None:
                 continue
-
-            existing = session.scalar(
-                select(KnowledgeArticle).where(KnowledgeArticle.title == item["title"])
-            )
+            existing = session.scalar(select(KnowledgeArticle).where(KnowledgeArticle.title == item["title"]))
             if existing is None:
-                session.add(
-                    KnowledgeArticle(
-                        category_id=category.id,
-                        title=item["title"],
-                        summary=item["summary"],
-                        content=item["content"],
-                        source_name=item["source_name"],
-                        source_url=item["source_url"],
-                        is_published=True,
-                    )
-                )
+                session.add(KnowledgeArticle(
+                    category_id=category.id,
+                    title=item["title"],
+                    summary=item["summary"],
+                    content=item["content"],
+                    source_name=item["source_name"],
+                    source_url=item["source_url"],
+                    is_published=True,
+                ))
         session.commit()
