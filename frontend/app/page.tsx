@@ -1,26 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://tj-smart-guide.onrender.com").replace(/\/$/, "");
 
-type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  icon?: string;
-};
-
+type Category = { id: number; name: string; slug: string; description: string; icon?: string };
 type Source = { title: string; name: string; url: string };
-type SearchItem = {
-  id: number;
-  title: string;
-  summary: string;
-  category_name: string;
-  source_name?: string;
-  source_url?: string;
-};
+type SearchItem = { id: number; title: string; summary: string; category_name: string; source_name?: string; source_url?: string };
 
 const fallbackCategories: Category[] = [
   { id: 1, slug: "documents", icon: "🪪", name: "Документы", description: "Паспорта, справки и госуслуги" },
@@ -32,236 +19,34 @@ const fallbackCategories: Category[] = [
 ];
 
 export default function Home() {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [sources, setSources] = useState<Source[]>([]);
-  const [questionLogId, setQuestionLogId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<Category[]>(fallbackCategories);
-  const [knowledgeQuery, setKnowledgeQuery] = useState("");
-  const [knowledge, setKnowledge] = useState<SearchItem[]>([]);
-  const [knowledgeLoading, setKnowledgeLoading] = useState(false);
-  const [feedbackSent, setFeedbackSent] = useState(false);
-  const [error, setError] = useState("");
-  const [toast, setToast] = useState("");
-  const questionInputRef = useRef<HTMLInputElement>(null);
-  const knowledgeRef = useRef<HTMLElement>(null);
+  const [question, setQuestion] = useState(""); const [answer, setAnswer] = useState(""); const [sources, setSources] = useState<Source[]>([]); const [questionLogId, setQuestionLogId] = useState<number | null>(null); const [loading, setLoading] = useState(false); const [categories, setCategories] = useState<Category[]>(fallbackCategories); const [knowledgeQuery, setKnowledgeQuery] = useState(""); const [knowledge, setKnowledge] = useState<SearchItem[]>([]); const [knowledgeLoading, setKnowledgeLoading] = useState(false); const [feedbackSent, setFeedbackSent] = useState(false); const [error, setError] = useState(""); const [toast, setToast] = useState("");
+  const questionInputRef = useRef<HTMLInputElement>(null); const knowledgeRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    fetch(`${API_URL}/api/categories`)
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((data) => {
-        if (data.items?.length) setCategories(data.items);
-      })
-      .catch(() => undefined);
-  }, []);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(""), 3000);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
+  useEffect(() => { fetch(`${API_URL}/api/categories`).then(r => r.ok ? r.json() : Promise.reject()).then(data => { if (data.items?.length) setCategories(data.items); }).catch(() => undefined); }, []);
+  useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(""), 3000); return () => window.clearTimeout(timer); }, [toast]);
 
   async function ask(event: FormEvent) {
-    event.preventDefault();
-    const cleanQuestion = question.trim();
-    if (!cleanQuestion || loading) return;
-
-    setLoading(true);
-    setAnswer("");
-    setSources([]);
-    setQuestionLogId(null);
-    setFeedbackSent(false);
-    setError("");
-
-    try {
-      const response = await fetch(`${API_URL}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: cleanQuestion }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 503) {
-          throw new Error("AI_SERVICE_UNAVAILABLE");
-        }
-        throw new Error(`API_${response.status}`);
-      }
-
-      const data = await response.json();
-      setAnswer(data.answer || "Не удалось получить ответ.");
-      setSources(data.sources || []);
-      setQuestionLogId(data.question_log_id || null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "UNKNOWN";
-      if (message === "AI_SERVICE_UNAVAILABLE") {
-        setError("AI-помощник временно недоступен. База знаний и поиск работают независимо от AI.");
-      } else {
-        setError("Не удалось связаться с сервером. Попробуйте ещё раз через несколько секунд.");
-      }
-      setToast("Запрос не выполнен");
-    } finally {
-      setLoading(false);
-    }
+    event.preventDefault(); const cleanQuestion = question.trim(); if (!cleanQuestion || loading) return;
+    setLoading(true); setAnswer(""); setSources([]); setQuestionLogId(null); setFeedbackSent(false); setError("");
+    try { const response = await fetch(`${API_URL}/api/chat`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: cleanQuestion }) }); if (!response.ok) throw new Error(response.status === 503 ? "AI_SERVICE_UNAVAILABLE" : `API_${response.status}`); const data = await response.json(); setAnswer(data.answer || "Не удалось получить ответ."); setSources(data.sources || []); setQuestionLogId(data.question_log_id || null); }
+    catch (err) { const message = err instanceof Error ? err.message : "UNKNOWN"; setError(message === "AI_SERVICE_UNAVAILABLE" ? "AI-помощник временно недоступен. База знаний и поиск работают независимо от AI." : "Не удалось связаться с сервером. Попробуйте ещё раз через несколько секунд."); setToast("Запрос не выполнен"); }
+    finally { setLoading(false); }
   }
 
   async function searchKnowledge(event: FormEvent) {
-    event.preventDefault();
-    const cleanQuery = knowledgeQuery.trim();
-    if (cleanQuery.length < 2 || knowledgeLoading) {
-      if (cleanQuery.length < 2) setToast("Введите минимум 2 символа для поиска");
-      return;
-    }
-
-    setKnowledgeLoading(true);
-    setError("");
-    try {
-      const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(cleanQuery)}`);
-      if (!response.ok) throw new Error();
-      const data = await response.json();
-      setKnowledge(data.items || []);
-      if (!data.items?.length) setToast("Ничего не найдено");
-    } catch {
-      setError("Не удалось выполнить поиск по базе знаний.");
-      setToast("Ошибка поиска");
-    } finally {
-      setKnowledgeLoading(false);
-    }
+    event.preventDefault(); const cleanQuery = knowledgeQuery.trim(); if (cleanQuery.length < 2 || knowledgeLoading) { if (cleanQuery.length < 2) setToast("Введите минимум 2 символа для поиска"); return; }
+    setKnowledgeLoading(true); setError(""); try { const response = await fetch(`${API_URL}/api/search?q=${encodeURIComponent(cleanQuery)}`); if (!response.ok) throw new Error(); const data = await response.json(); setKnowledge(data.items || []); if (!data.items?.length) setToast("Ничего не найдено"); } catch { setError("Не удалось выполнить поиск по базе знаний."); setToast("Ошибка поиска"); } finally { setKnowledgeLoading(false); }
   }
+  function selectCategory(category: Category) { setQuestion(`Расскажи о категории «${category.name}» в Таджикистане`); setAnswer(""); setError(""); window.setTimeout(() => questionInputRef.current?.focus(), 0); setToast(`${category.icon || "📌"} ${category.name} выбрана`); }
+  async function sendFeedback(rating: number) { if (!questionLogId || feedbackSent) return; try { const response = await fetch(`${API_URL}/api/feedback`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question_log_id: questionLogId, rating }) }); if (!response.ok) throw new Error(); setFeedbackSent(true); setToast("Спасибо за оценку!"); } catch { setToast("Не удалось сохранить оценку"); } }
+  function scrollToKnowledge() { knowledgeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }
 
-  function selectCategory(category: Category) {
-    setQuestion(`Расскажи о категории «${category.name}» в Таджикистане`);
-    setAnswer("");
-    setError("");
-    window.setTimeout(() => questionInputRef.current?.focus(), 0);
-    setToast(`${category.icon || "📌"} ${category.name} выбрана`);
-  }
-
-  async function sendFeedback(rating: number) {
-    if (!questionLogId || feedbackSent) return;
-    try {
-      const response = await fetch(`${API_URL}/api/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question_log_id: questionLogId, rating }),
-      });
-      if (!response.ok) throw new Error();
-      setFeedbackSent(true);
-      setToast("Спасибо за оценку!");
-    } catch {
-      setToast("Не удалось сохранить оценку");
-    }
-  }
-
-  function scrollToKnowledge() {
-    knowledgeRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  return (
-    <main className="hero">
-      <div className="container">
-        <nav className="nav">
-          <button className="brand brandButton" type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <span className="flag">🇹🇯</span> TJ Smart Guide
-          </button>
-          <button className="badge badgeButton" type="button" onClick={scrollToKnowledge}>База знаний</button>
-        </nav>
-
-        <section className="heroContent">
-          <div className="eyebrow">Цифровой помощник Таджикистана</div>
-          <h1 className="title">Ответы на вопросы<br />о Таджикистане</h1>
-          <p className="subtitle">Задайте вопрос простыми словами. TJ Smart Guide помогает разобраться в документах, образовании, работе, бизнесе и других повседневных вопросах.</p>
-
-          <form className="search" onSubmit={ask}>
-            <input
-              ref={questionInputRef}
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              placeholder="Например: где искать официальную информацию о госуслугах?"
-              aria-label="Ваш вопрос"
-              disabled={loading}
-            />
-            <button className="primary" type="submit" disabled={loading || !question.trim()}>
-              {loading ? "Ищу..." : "Спросить"}
-            </button>
-          </form>
-
-          {loading && <div className="statusMessage" role="status">Проверяю информацию…</div>}
-          {error && <div className="errorMessage" role="alert">{error}</div>}
-
-          {answer && (
-            <div className="answerCard">
-              <strong>Ответ</strong>
-              <p>{answer}</p>
-
-              {sources.length > 0 && (
-                <div className="sources">
-                  <div className="sourcesTitle">Источники</div>
-                  {sources.slice(0, 3).map((source) => (
-                    <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="sourceLink">
-                      {source.name} · {source.title}
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              {questionLogId && !feedbackSent && (
-                <div className="feedback">
-                  <span>Полезен ответ?</span>
-                  <button type="button" onClick={() => sendFeedback(5)}>👍 Да</button>
-                  <button type="button" onClick={() => sendFeedback(2)}>👎 Нет</button>
-                </div>
-              )}
-              {feedbackSent && <div className="feedbackDone">Спасибо за оценку.</div>}
-            </div>
-          )}
-
-          <div className="section">
-            <div className="sectionTitle">Популярные категории</div>
-            <div className="categories">
-              {categories.map((category) => (
-                <button className="category" key={category.slug} type="button" onClick={() => selectCategory(category)}>
-                  <div className="categoryIcon">{category.icon || "📌"}</div>
-                  <div className="categoryName">{category.name}</div>
-                  <div className="categoryText">{category.description}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <section className="section knowledgeSection" ref={knowledgeRef}>
-            <div className="sectionTitle">База знаний</div>
-            <p className="sectionHint">Поиск по проверенным материалам, которые подключены к TJ Smart Guide.</p>
-            <form className="knowledgeSearch" onSubmit={searchKnowledge}>
-              <input
-                value={knowledgeQuery}
-                onChange={(event) => setKnowledgeQuery(event.target.value)}
-                placeholder="Например: образование"
-                aria-label="Поиск по базе знаний"
-              />
-              <button className="secondary" type="submit" disabled={knowledgeLoading || knowledgeQuery.trim().length < 2}>
-                {knowledgeLoading ? "Поиск..." : "Найти"}
-              </button>
-            </form>
-
-            {knowledge.length > 0 && (
-              <div className="knowledgeList">
-                {knowledge.map((item) => (
-                  <article className="knowledgeCard" key={item.id}>
-                    <div className="knowledgeCategory">{item.category_name}</div>
-                    <h3>{item.title}</h3>
-                    <p>{item.summary}</p>
-                    {item.source_url && (
-                      <a href={item.source_url} target="_blank" rel="noreferrer">Открыть источник →</a>
-                    )}
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-        </section>
-      </div>
-      {toast && <div className="toast" role="status">{toast}</div>}
-    </main>
-  );
+  return <main className="hero"><div className="container"><nav className="nav"><button className="brand brandButton" type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}><span className="flag">🇹🇯</span> TJ Smart Guide</button><div className="adminActions"><Link href="/guides" className="badge">Документы</Link><Link href="/education" className="badge">🎓 Образование</Link><Link href="/jobs" className="badge">💼 Работа</Link><button className="badge badgeButton" type="button" onClick={scrollToKnowledge}>База знаний</button></div></nav>
+    <section className="heroContent"><div className="eyebrow">Цифровой помощник Таджикистана</div><h1 className="title">Ответы на вопросы<br />о Таджикистане</h1><p className="subtitle">Задайте вопрос простыми словами. TJ Smart Guide помогает разобраться в документах, образовании, работе, бизнесе и других повседневных вопросах.</p>
+      <form className="search" onSubmit={ask}><input ref={questionInputRef} value={question} onChange={e => setQuestion(e.target.value)} placeholder="Например: где искать официальную информацию о госуслугах?" aria-label="Ваш вопрос" disabled={loading}/><button className="primary" type="submit" disabled={loading || !question.trim()}>{loading ? "Ищу..." : "Спросить"}</button></form>
+      {loading && <div className="statusMessage" role="status">Проверяю информацию…</div>}{error && <div className="errorMessage" role="alert">{error}</div>}
+      {answer && <div className="answerCard"><strong>Ответ</strong><p>{answer}</p>{sources.length > 0 && <div className="sources"><div className="sourcesTitle">Источники</div>{sources.slice(0,3).map(source => <a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="sourceLink">{source.name} · {source.title}</a>)}</div>}{questionLogId && !feedbackSent && <div className="feedback"><span>Полезен ответ?</span><button type="button" onClick={() => sendFeedback(5)}>👍 Да</button><button type="button" onClick={() => sendFeedback(2)}>👎 Нет</button></div>}{feedbackSent && <div className="feedbackDone">Спасибо за оценку.</div>}</div>}
+      <div className="section"><div className="sectionTitle">Популярные категории</div><div className="categories">{categories.map(category => <button className="category" key={category.slug} type="button" onClick={() => selectCategory(category)}><div className="categoryIcon">{category.icon || "📌"}</div><div className="categoryName">{category.name}</div><div className="categoryText">{category.description}</div></button>)}</div></div>
+      <section className="section knowledgeSection" ref={knowledgeRef}><div className="sectionTitle">База знаний</div><p className="sectionHint">Поиск по проверенным материалам, которые подключены к TJ Smart Guide.</p><form className="knowledgeSearch" onSubmit={searchKnowledge}><input value={knowledgeQuery} onChange={e => setKnowledgeQuery(e.target.value)} placeholder="Например: образование" aria-label="Поиск по базе знаний"/><button className="secondary" type="submit" disabled={knowledgeLoading || knowledgeQuery.trim().length < 2}>{knowledgeLoading ? "Поиск..." : "Найти"}</button></form>{knowledge.length > 0 && <div className="knowledgeList">{knowledge.map(item => <article className="knowledgeCard" key={item.id}><div className="knowledgeCategory">{item.category_name}</div><h3>{item.title}</h3><p>{item.summary}</p>{item.source_url && <a href={item.source_url} target="_blank" rel="noreferrer">Открыть источник →</a>}</article>)}</div>}</section>
+    </section></div>{toast && <div className="toast" role="status">{toast}</div>}</main>;
 }
