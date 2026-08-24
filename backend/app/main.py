@@ -1,11 +1,11 @@
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from openai import OpenAI
-from sqlalchemy import or_, select, text
+from sqlalchemy import func, or_, select, text
 
 from .database import Base, SessionLocal
 from .models import Category, Feedback, KnowledgeArticle, QuestionLog
@@ -29,46 +29,11 @@ SEED_CATEGORIES = [
 ]
 
 SEED_ARTICLES = [
-    (
-        "government",
-        "Единый государственный интернет-портал",
-        "Официальная точка входа для информации о государственных услугах Таджикистана.",
-        "Портал содержит разделы для граждан и бизнеса, включая государственные услуги, трудоустройство, правовую помощь, транспорт, лицензирование и регистрацию бизнеса. Перед важными действиями проверяйте актуальные требования непосредственно на официальном портале.",
-        "EGOV.TJ",
-        "https://egov.tj/",
-    ),
-    (
-        "education",
-        "Министерство образования и науки",
-        "Официальный сайт Министерства образования и науки Республики Таджикистан.",
-        "На сайте публикуются официальные документы, новости и полезные материалы для учащихся, родителей, учителей и образовательных учреждений.",
-        "Министерство образования и науки РТ",
-        "https://maorif.tj/",
-    ),
-    (
-        "business",
-        "Электронные налоговые сервисы",
-        "Официальные электронные сервисы Налогового комитета Республики Таджикистан.",
-        "Официальный портал предоставляет электронные сервисы для налогоплательщиков, включая личный кабинет, электронные декларации и отдельные налоговые сервисы. Конкретные требования нужно проверять в актуальных материалах Налогового комитета.",
-        "Налоговый комитет РТ",
-        "https://services.andoz.tj/",
-    ),
-    (
-        "jobs",
-        "Государственные ресурсы по трудоустройству",
-        "EGOV.TJ содержит разделы, связанные с трудоустройством и занятостью.",
-        "При поиске официальной информации о трудоустройстве сначала проверяйте разделы EGOV.TJ и соответствующие государственные ресурсы. TJ Smart Guide должен показывать источник и дату проверки для меняющихся требований.",
-        "EGOV.TJ",
-        "https://egov.tj/",
-    ),
-    (
-        "government",
-        "Цифровизация государственных услуг",
-        "В Таджикистане развивается единая цифровая инфраструктура государственных услуг.",
-        "Официальные цифровые ресурсы объединяют информацию о государственных органах и услугах. TJ Smart Guide будет использовать официальные источники как основу базы знаний, а не заменять их.",
-        "EGOV.TJ",
-        "https://egov.tj/",
-    ),
+    ("government", "Единый государственный интернет-портал", "Официальная точка входа для информации о государственных услугах Таджикистана.", "Портал содержит разделы для граждан и бизнеса, включая государственные услуги, трудоустройство, правовую помощь, транспорт, лицензирование и регистрацию бизнеса. Перед важными действиями проверяйте актуальные требования непосредственно на официальном портале.", "EGOV.TJ", "https://egov.tj/"),
+    ("education", "Министерство образования и науки", "Официальный сайт Министерства образования и науки Республики Таджикистан.", "На сайте публикуются официальные документы, новости и полезные материалы для учащихся, родителей, учителей и образовательных учреждений.", "Министерство образования и науки РТ", "https://maorif.tj/"),
+    ("business", "Электронные налоговые сервисы", "Официальные электронные сервисы Налогового комитета Республики Таджикистан.", "Официальный портал предоставляет электронные сервисы для налогоплательщиков, включая личный кабинет, электронные декларации и отдельные налоговые сервисы. Конкретные требования нужно проверять в актуальных материалах Налогового комитета.", "Налоговый комитет РТ", "https://services.andoz.tj/"),
+    ("jobs", "Государственные ресурсы по трудоустройству", "EGOV.TJ содержит разделы, связанные с трудоустройством и занятостью.", "При поиске официальной информации о трудоустройстве сначала проверяйте разделы EGOV.TJ и соответствующие государственные ресурсы. TJ Smart Guide должен показывать источник и дату проверки для меняющихся требований.", "EGOV.TJ", "https://egov.tj/"),
+    ("government", "Цифровизация государственных услуг", "В Таджикистане развивается единая цифровая инфраструктура государственных услуг.", "Официальные цифровые ресурсы объединяют информацию о государственных органах и услугах. TJ Smart Guide будет использовать официальные источники как основу базы знаний, а не заменять их.", "EGOV.TJ", "https://egov.tj/"),
 ]
 
 
@@ -89,21 +54,12 @@ async def lifespan(app: FastAPI):
                 if category:
                     exists = session.scalar(select(KnowledgeArticle).where(KnowledgeArticle.title == title))
                     if not exists:
-                        session.add(
-                            KnowledgeArticle(
-                                category_id=category.id,
-                                title=title,
-                                summary=summary,
-                                content=content,
-                                source_name=source_name,
-                                source_url=source_url,
-                            )
-                        )
+                        session.add(KnowledgeArticle(category_id=category.id, title=title, summary=summary, content=content, source_name=source_name, source_url=source_url))
             session.commit()
     yield
 
 
-app = FastAPI(title="TJ Smart Guide API", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="TJ Smart Guide API", version="0.4.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -124,6 +80,20 @@ class FeedbackRequest(BaseModel):
     comment: str | None = Field(default=None, max_length=1000)
 
 
+class AdminArticleCreate(BaseModel):
+    category_id: int
+    title: str = Field(min_length=2, max_length=200)
+    summary: str = Field(min_length=2, max_length=1000)
+    content: str = Field(min_length=2, max_length=20000)
+    source_name: str | None = Field(default=None, max_length=150)
+    source_url: str | None = Field(default=None, max_length=500)
+    is_published: bool = True
+
+
+class AdminArticleUpdate(AdminArticleCreate):
+    pass
+
+
 def get_client() -> OpenAI:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -142,18 +112,18 @@ def find_context(session, question: str) -> list[KnowledgeArticle]:
     conditions = []
     for term in terms:
         pattern = f"%{term}%"
-        conditions.extend([
-            KnowledgeArticle.title.ilike(pattern),
-            KnowledgeArticle.summary.ilike(pattern),
-            KnowledgeArticle.content.ilike(pattern),
-        ])
-    stmt = (
-        select(KnowledgeArticle)
-        .where(KnowledgeArticle.is_published.is_(True), or_(*conditions))
-        .order_by(KnowledgeArticle.updated_at.desc())
-        .limit(5)
-    )
+        conditions.extend([KnowledgeArticle.title.ilike(pattern), KnowledgeArticle.summary.ilike(pattern), KnowledgeArticle.content.ilike(pattern)])
+    stmt = select(KnowledgeArticle).where(KnowledgeArticle.is_published.is_(True), or_(*conditions)).order_by(KnowledgeArticle.updated_at.desc()).limit(5)
     return list(session.scalars(stmt).all())
+
+
+def verify_admin(x_admin_token: str | None = Header(default=None)):
+    expected = os.getenv("ADMIN_TOKEN")
+    if not expected:
+        raise HTTPException(status_code=503, detail="ADMIN_TOKEN is not configured")
+    if not x_admin_token or x_admin_token != expected:
+        raise HTTPException(status_code=401, detail="Invalid admin token")
+    return True
 
 
 @app.get("/api/health")
@@ -166,13 +136,7 @@ def health():
                 db_ok = True
         except Exception:
             db_ok = False
-    return {
-        "status": "ok",
-        "service": "TJ Smart Guide API",
-        "ai_configured": bool(os.getenv("OPENAI_API_KEY")),
-        "database_configured": database_ready(),
-        "database_connected": db_ok,
-    }
+    return {"status": "ok", "service": "TJ Smart Guide API", "ai_configured": bool(os.getenv("OPENAI_API_KEY")), "database_configured": database_ready(), "database_connected": db_ok, "admin_configured": bool(os.getenv("ADMIN_TOKEN"))}
 
 
 @app.get("/api/categories")
@@ -181,61 +145,20 @@ def categories():
         return {"items": []}
     with SessionLocal() as session:
         rows = session.scalars(select(Category).where(Category.is_active.is_(True)).order_by(Category.name)).all()
-        return {
-            "items": [
-                {
-                    "id": row.id,
-                    "name": row.name,
-                    "slug": row.slug,
-                    "description": row.description,
-                    "icon": row.icon,
-                }
-                for row in rows
-            ]
-        }
+        return {"items": [{"id": row.id, "name": row.name, "slug": row.slug, "description": row.description, "icon": row.icon} for row in rows]}
 
 
 @app.get("/api/search")
-def search_knowledge(
-    q: str = Query(min_length=2, max_length=100),
-    category: str | None = Query(default=None, max_length=80),
-):
+def search_knowledge(q: str = Query(min_length=2, max_length=100), category: str | None = Query(default=None, max_length=80)):
     if not database_ready():
         return {"items": [], "total": 0}
     with SessionLocal() as session:
         pattern = f"%{q.strip()}%"
-        stmt = (
-            select(KnowledgeArticle, Category)
-            .join(Category, KnowledgeArticle.category_id == Category.id)
-            .where(
-                KnowledgeArticle.is_published.is_(True),
-                or_(
-                    KnowledgeArticle.title.ilike(pattern),
-                    KnowledgeArticle.summary.ilike(pattern),
-                    KnowledgeArticle.content.ilike(pattern),
-                ),
-            )
-            .order_by(KnowledgeArticle.updated_at.desc())
-            .limit(20)
-        )
+        stmt = select(KnowledgeArticle, Category).join(Category, KnowledgeArticle.category_id == Category.id).where(KnowledgeArticle.is_published.is_(True), or_(KnowledgeArticle.title.ilike(pattern), KnowledgeArticle.summary.ilike(pattern), KnowledgeArticle.content.ilike(pattern))).order_by(KnowledgeArticle.updated_at.desc()).limit(20)
         if category:
             stmt = stmt.where(Category.slug == category)
         rows = session.execute(stmt).all()
-        return {
-            "items": [
-                {
-                    "id": article.id,
-                    "title": article.title,
-                    "summary": article.summary,
-                    "category": category_row.slug,
-                    "category_name": category_row.name,
-                    "source_name": article.source_name,
-                    "source_url": article.source_url,
-                }
-                for article, category_row in rows
-            ],
-            "total": len(rows),
-        }
+        return {"items": [{"id": article.id, "title": article.title, "summary": article.summary, "category": category_row.slug, "category_name": category_row.name, "source_name": article.source_name, "source_url": article.source_url} for article, category_row in rows], "total": len(rows)}
 
 
 @app.get("/api/articles/{article_id}")
@@ -247,17 +170,7 @@ def article(article_id: int):
         if not row or not row.is_published:
             raise HTTPException(status_code=404, detail="Article not found")
         category = session.get(Category, row.category_id)
-        return {
-            "id": row.id,
-            "title": row.title,
-            "summary": row.summary,
-            "content": row.content,
-            "category": category.slug if category else None,
-            "category_name": category.name if category else None,
-            "source_name": row.source_name,
-            "source_url": row.source_url,
-            "updated_at": row.updated_at,
-        }
+        return {"id": row.id, "title": row.title, "summary": row.summary, "content": row.content, "category": category.slug if category else None, "category_name": category.name if category else None, "source_name": row.source_name, "source_url": row.source_url, "updated_at": row.updated_at}
 
 
 @app.post("/api/chat")
@@ -269,33 +182,15 @@ def chat(payload: ChatRequest):
         with SessionLocal() as session:
             articles = find_context(session, payload.question)
             if articles:
-                context = "\n\nБАЗА ЗНАНИЙ:\n" + "\n\n".join(
-                    f"[{article.title}] {article.content} Источник: {article.source_name or 'не указан'} {article.source_url or ''}"
-                    for article in articles
-                )
-                sources = [
-                    {
-                        "title": article.title,
-                        "name": article.source_name or "Источник",
-                        "url": article.source_url or "",
-                    }
-                    for article in articles
-                    if article.source_url
-                ]
-
+                context = "\n\nБАЗА ЗНАНИЙ:\n" + "\n\n".join(f"[{article.title}] {article.content} Источник: {article.source_name or 'не указан'} {article.source_url or ''}" for article in articles)
+                sources = [{"title": article.title, "name": article.source_name or "Источник", "url": article.source_url or ""} for article in articles if article.source_url]
     try:
-        response = client.responses.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-5.6"),
-            instructions=SYSTEM_PROMPT + context,
-            input=payload.question.strip(),
-        )
+        response = client.responses.create(model=os.getenv("OPENAI_MODEL", "gpt-5.6"), instructions=SYSTEM_PROMPT + context, input=payload.question.strip())
     except Exception as exc:
         raise HTTPException(status_code=502, detail="AI service request failed") from exc
-
     answer = response.output_text.strip()
     if not answer:
         raise HTTPException(status_code=502, detail="AI returned an empty response")
-
     log_id = None
     if database_ready():
         with SessionLocal() as session:
@@ -304,7 +199,6 @@ def chat(payload: ChatRequest):
             session.commit()
             session.refresh(log)
             log_id = log.id
-
     return {"answer": answer, "question_log_id": log_id, "sources": sources}
 
 
@@ -315,11 +209,83 @@ def feedback(payload: FeedbackRequest):
     with SessionLocal() as session:
         if payload.question_log_id is not None and not session.get(QuestionLog, payload.question_log_id):
             raise HTTPException(status_code=404, detail="Question log not found")
-        row = Feedback(
-            question_log_id=payload.question_log_id,
-            rating=payload.rating,
-            comment=payload.comment,
-        )
+        row = Feedback(question_log_id=payload.question_log_id, rating=payload.rating, comment=payload.comment)
         session.add(row)
         session.commit()
         return {"success": True, "id": row.id}
+
+
+# Protected admin API. The token is intentionally kept in Render Environment Variables.
+@app.get("/api/admin/stats", dependencies=[Depends(verify_admin)])
+def admin_stats():
+    if not database_ready():
+        raise HTTPException(status_code=503, detail="Database is not configured")
+    with SessionLocal() as session:
+        return {
+            "categories": session.scalar(select(func.count(Category.id))) or 0,
+            "articles": session.scalar(select(func.count(KnowledgeArticle.id))) or 0,
+            "published_articles": session.scalar(select(func.count(KnowledgeArticle.id)).where(KnowledgeArticle.is_published.is_(True))) or 0,
+            "questions": session.scalar(select(func.count(QuestionLog.id))) or 0,
+            "feedback": session.scalar(select(func.count(Feedback.id))) or 0,
+        }
+
+
+@app.get("/api/admin/categories", dependencies=[Depends(verify_admin)])
+def admin_categories():
+    if not database_ready():
+        raise HTTPException(status_code=503, detail="Database is not configured")
+    with SessionLocal() as session:
+        rows = session.scalars(select(Category).order_by(Category.name)).all()
+        return {"items": [{"id": r.id, "name": r.name, "slug": r.slug, "description": r.description, "icon": r.icon, "is_active": r.is_active} for r in rows]}
+
+
+@app.get("/api/admin/articles", dependencies=[Depends(verify_admin)])
+def admin_articles():
+    if not database_ready():
+        raise HTTPException(status_code=503, detail="Database is not configured")
+    with SessionLocal() as session:
+        rows = session.execute(select(KnowledgeArticle, Category).join(Category, KnowledgeArticle.category_id == Category.id).order_by(KnowledgeArticle.updated_at.desc())).all()
+        return {"items": [{"id": a.id, "category_id": a.category_id, "category_name": c.name, "title": a.title, "summary": a.summary, "content": a.content, "source_name": a.source_name, "source_url": a.source_url, "is_published": a.is_published, "updated_at": a.updated_at} for a, c in rows]}
+
+
+@app.post("/api/admin/articles", dependencies=[Depends(verify_admin)])
+def admin_create_article(payload: AdminArticleCreate):
+    if not database_ready():
+        raise HTTPException(status_code=503, detail="Database is not configured")
+    with SessionLocal() as session:
+        if not session.get(Category, payload.category_id):
+            raise HTTPException(status_code=404, detail="Category not found")
+        row = KnowledgeArticle(**payload.model_dump())
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        return {"success": True, "id": row.id}
+
+
+@app.put("/api/admin/articles/{article_id}", dependencies=[Depends(verify_admin)])
+def admin_update_article(article_id: int, payload: AdminArticleUpdate):
+    if not database_ready():
+        raise HTTPException(status_code=503, detail="Database is not configured")
+    with SessionLocal() as session:
+        row = session.get(KnowledgeArticle, article_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="Article not found")
+        if not session.get(Category, payload.category_id):
+            raise HTTPException(status_code=404, detail="Category not found")
+        for key, value in payload.model_dump().items():
+            setattr(row, key, value)
+        session.commit()
+        return {"success": True}
+
+
+@app.delete("/api/admin/articles/{article_id}", dependencies=[Depends(verify_admin)])
+def admin_delete_article(article_id: int):
+    if not database_ready():
+        raise HTTPException(status_code=503, detail="Database is not configured")
+    with SessionLocal() as session:
+        row = session.get(KnowledgeArticle, article_id)
+        if not row:
+            raise HTTPException(status_code=404, detail="Article not found")
+        session.delete(row)
+        session.commit()
+        return {"success": True}
