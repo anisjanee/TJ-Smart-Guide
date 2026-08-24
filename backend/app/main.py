@@ -264,6 +264,7 @@ def article(article_id: int):
 def chat(payload: ChatRequest):
     client = get_client()
     context = ""
+    sources: list[dict[str, str]] = []
     if database_ready():
         with SessionLocal() as session:
             articles = find_context(session, payload.question)
@@ -272,6 +273,15 @@ def chat(payload: ChatRequest):
                     f"[{article.title}] {article.content} Источник: {article.source_name or 'не указан'} {article.source_url or ''}"
                     for article in articles
                 )
+                sources = [
+                    {
+                        "title": article.title,
+                        "name": article.source_name or "Источник",
+                        "url": article.source_url or "",
+                    }
+                    for article in articles
+                    if article.source_url
+                ]
 
     try:
         response = client.responses.create(
@@ -295,7 +305,7 @@ def chat(payload: ChatRequest):
             session.refresh(log)
             log_id = log.id
 
-    return {"answer": answer, "question_log_id": log_id, "sources": []}
+    return {"answer": answer, "question_log_id": log_id, "sources": sources}
 
 
 @app.post("/api/feedback")
