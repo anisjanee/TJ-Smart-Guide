@@ -5,9 +5,9 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from openai import OpenAI
-from sqlalchemy import func, or_, select, text
+from sqlalchemy import or_, select, text
 
-from .database import Base, SessionLocal, get_database_url
+from .database import Base, SessionLocal
 from .models import Category, Feedback, KnowledgeArticle, QuestionLog
 
 
@@ -19,7 +19,6 @@ SYSTEM_PROMPT = """
 Для юридических, медицинских, финансовых и государственных вопросов не выдавай предположение за официальный факт.
 """.strip()
 
-
 SEED_CATEGORIES = [
     ("Документы", "documents", "Паспорта, справки, регистрация и другие документы", "📄"),
     ("Образование", "education", "Школы, университеты, обучение и поступление", "🎓"),
@@ -29,16 +28,77 @@ SEED_CATEGORIES = [
     ("Повседневная жизнь", "life", "Полезная информация для повседневных задач", "🏠"),
 ]
 
+SEED_ARTICLES = [
+    (
+        "government",
+        "Единый государственный интернет-портал",
+        "Официальная точка входа для информации о государственных услугах Таджикистана.",
+        "Портал содержит разделы для граждан и бизнеса, включая государственные услуги, трудоустройство, правовую помощь, транспорт, лицензирование и регистрацию бизнеса. Перед важными действиями проверяйте актуальные требования непосредственно на официальном портале.",
+        "EGOV.TJ",
+        "https://egov.tj/",
+    ),
+    (
+        "education",
+        "Министерство образования и науки",
+        "Официальный сайт Министерства образования и науки Республики Таджикистан.",
+        "На сайте публикуются официальные документы, новости и полезные материалы для учащихся, родителей, учителей и образовательных учреждений.",
+        "Министерство образования и науки РТ",
+        "https://maorif.tj/",
+    ),
+    (
+        "business",
+        "Электронные налоговые сервисы",
+        "Официальные электронные сервисы Налогового комитета Республики Таджикистан.",
+        "Официальный портал предоставляет электронные сервисы для налогоплательщиков, включая личный кабинет, электронные декларации и отдельные налоговые сервисы. Конкретные требования нужно проверять в актуальных материалах Налогового комитета.",
+        "Налоговый комитет РТ",
+        "https://services.andoz.tj/",
+    ),
+    (
+        "jobs",
+        "Государственные ресурсы по трудоустройству",
+        "EGOV.TJ содержит разделы, связанные с трудоустройством и занятостью.",
+        "При поиске официальной информации о трудоустройстве сначала проверяйте разделы EGOV.TJ и соответствующие государственные ресурсы. TJ Smart Guide должен показывать источник и дату проверки для меняющихся требований.",
+        "EGOV.TJ",
+        "https://egov.tj/",
+    ),
+    (
+        "government",
+        "Цифровизация государственных услуг",
+        "В Таджикистане развивается единая цифровая инфраструктура государственных услуг.",
+        "Официальные цифровые ресурсы объединяют информацию о государственных органах и услугах. TJ Smart Guide будет использовать официальные источники как основу базы знаний, а не заменять их.",
+        "EGOV.TJ",
+        "https://egov.tj/",
+    ),
+]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if SessionLocal is not None:
-        Base.metadata.create_all(bind=SessionLocal.kw["bind"])
+        engine = SessionLocal.kw["bind"]
+        Base.metadata.create_all(bind=engine)
         with SessionLocal() as session:
             for name, slug, description, icon in SEED_CATEGORIES:
                 exists = session.scalar(select(Category).where(Category.slug == slug))
                 if not exists:
                     session.add(Category(name=name, slug=slug, description=description, icon=icon))
+            session.commit()
+
+            for slug, title, summary, content, source_name, source_url in SEED_ARTICLES:
+                category = session.scalar(select(Category).where(Category.slug == slug))
+                if category:
+                    exists = session.scalar(select(KnowledgeArticle).where(KnowledgeArticle.title == title))
+                    if not exists:
+                        session.add(
+                            KnowledgeArticle(
+                                category_id=category.id,
+                                title=title,
+                                summary=summary,
+                                content=content,
+                                source_name=source_name,
+                                source_url=source_url,
+                            )
+                        )
             session.commit()
     yield
 
@@ -120,9 +180,7 @@ def categories():
     if not database_ready():
         return {"items": []}
     with SessionLocal() as session:
-        rows = session.scalars(
-            select(Category).where(Category.is_active.is_(True)).order_by(Category.name)
-        ).all()
+        rows = session.scalars(select(Category).where(Category.is_active.is_(True)).order_by(Category.name)).all()
         return {
             "items": [
                 {
