@@ -11,7 +11,7 @@ body {
 
 button, input { font: inherit; }
 button { cursor: pointer; }
-button:disabled { cursor: wait; opacity: .65; }
+button:disabled { cursor: not-allowed; opacity: .65; }
 a { color: inherit; }
 
 .container { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
@@ -24,8 +24,12 @@ a { color: inherit; }
 
 .nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; }
+.brandButton { border: 0; padding: 0; background: transparent; color: inherit; }
+.brandButton:hover { opacity: .78; }
 .flag { font-size: 28px; }
 .badge { padding: 8px 12px; border-radius: 999px; background: #fff; border: 1px solid #e5e7eb; color: #4b5563; font-size: 13px; }
+.badgeButton { cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+.badgeButton:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(15,23,42,.08); }
 
 .heroContent { max-width: 900px; margin: 130px auto 0; text-align: center; }
 .eyebrow { color: #2563eb; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 13px; }
@@ -44,9 +48,15 @@ a { color: inherit; }
   box-shadow: 0 20px 60px rgba(15, 23, 42, .1);
 }
 .search input, .knowledgeSearch input { flex: 1; min-width: 0; border: 0; outline: 0; padding: 16px; color: #111827; background: transparent; }
-.primary, .secondary { border: 0; border-radius: 14px; padding: 0 22px; font-weight: 700; }
+.primary, .secondary { border: 0; border-radius: 14px; padding: 0 22px; font-weight: 700; transition: transform .15s ease, filter .15s ease; }
 .primary { background: #2563eb; color: white; }
 .secondary { background: #111827; color: white; }
+.primary:not(:disabled):hover, .secondary:not(:disabled):hover { transform: translateY(-1px); filter: brightness(1.06); }
+
+.statusMessage, .errorMessage { margin: 12px auto 0; max-width: 760px; padding: 11px 14px; border-radius: 12px; text-align: left; font-size: 14px; }
+.statusMessage { background: #eff6ff; color: #1d4ed8; }
+.errorMessage { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+.toast { position: fixed; left: 50%; bottom: 22px; z-index: 50; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 11px 16px; border-radius: 12px; background: #111827; color: white; box-shadow: 0 12px 30px rgba(15,23,42,.2); font-size: 14px; }
 
 .answerCard { margin-top: 18px; padding: 22px; background: white; border: 1px solid #e5e7eb; border-radius: 18px; text-align: left; line-height: 1.6; box-shadow: 0 10px 30px rgba(15,23,42,.06); }
 .answerCard p { white-space: pre-wrap; margin-bottom: 0; }
@@ -56,24 +66,28 @@ a { color: inherit; }
 .sourceLink:hover { text-decoration: underline; }
 .feedback { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 18px; font-size: 13px; }
 .feedback button { border: 1px solid #e5e7eb; background: #f9fafb; border-radius: 10px; padding: 7px 11px; }
+.feedback button:hover { background: #eff6ff; border-color: #bfdbfe; }
 .feedbackDone { margin-top: 16px; color: #059669; font-size: 13px; }
 
 .section { padding-top: 56px; }
 .sectionTitle { text-align: left; font-size: 20px; margin-bottom: 18px; }
 .sectionHint { color: #6b7280; text-align: left; margin-top: -8px; margin-bottom: 18px; font-size: 14px; }
 .categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.category { padding: 20px; border: 1px solid #e5e7eb; border-radius: 18px; background: rgba(255,255,255,.82); text-align: left; transition: transform .2s ease, box-shadow .2s ease; }
-.category:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15,23,42,.08); }
+.category { padding: 20px; border: 1px solid #e5e7eb; border-radius: 18px; background: rgba(255,255,255,.82); text-align: left; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.category:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(15,23,42,.08); border-color: #bfdbfe; }
+.category:focus-visible, .brandButton:focus-visible, .badgeButton:focus-visible { outline: 3px solid rgba(37,99,235,.25); outline-offset: 3px; }
 .categoryIcon { font-size: 25px; }
 .categoryName { margin-top: 10px; font-weight: 700; }
 .categoryText { margin-top: 5px; color: #6b7280; font-size: 13px; }
 
 .knowledgeSearch { max-width: 100%; box-shadow: none; }
 .knowledgeList { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
-.knowledgeCard { padding: 18px; background: white; border: 1px solid #e5e7eb; border-radius: 16px; text-align: left; }
+.knowledgeCard { padding: 18px; background: white; border: 1px solid #e5e7eb; border-radius: 16px; text-align: left; transition: transform .15s ease, box-shadow .15s ease; }
+.knowledgeCard:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(15,23,42,.07); }
 .knowledgeCard h3 { margin: 8px 0; font-size: 17px; }
 .knowledgeCard p { margin: 0 0 12px; color: #6b7280; font-size: 14px; line-height: 1.5; }
 .knowledgeCard a { color: #2563eb; font-size: 13px; text-decoration: none; font-weight: 700; }
+.knowledgeCard a:hover { text-decoration: underline; }
 .knowledgeCategory { color: #2563eb; font-size: 12px; font-weight: 700; }
 
 .adminPage { min-height: 100vh; padding: 28px 16px 60px; background: #f3f5f9; }
