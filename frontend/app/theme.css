@@ -9,6 +9,17 @@ html[data-theme="dark"] .languageSwitch{background:rgba(255,255,255,.05);border-
 html[data-theme="dark"] .languageSwitch button{color:#98a7bb}
 html[data-theme="dark"] .languageSwitch button.active{background:#16264a;color:#76cfff;box-shadow:none}
 html[data-theme="dark"] .themeButton{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.11);color:#fff}
+html[data-theme="dark"] .menuButton{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.11);color:#fff}
+html[data-theme="dark"] .menuButton:hover{background:#16264a;border-color:#3158a8;color:#76cfff}
+html[data-theme="dark"] .sideMenu{background:#0b1220;color:#f8fafc;box-shadow:-20px 0 60px rgba(0,0,0,.45)}
+html[data-theme="dark"] .sideMenuHeader{border-color:rgba(255,255,255,.1)}
+html[data-theme="dark"] .menuClose{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);color:#fff}
+html[data-theme="dark"] .sideMenuLinks a,html[data-theme="dark"] .sideMenuOptions button,html[data-theme="dark"] .sideTheme{color:#d7e0ee}
+html[data-theme="dark"] .sideMenuLinks a:hover,html[data-theme="dark"] .sideMenuOptions button:hover,html[data-theme="dark"] .sideTheme:hover{background:rgba(255,255,255,.07);color:#76cfff}
+html[data-theme="dark"] .sideMenuDivider{background:rgba(255,255,255,.1)}
+html[data-theme="dark"] .sideMenuLabel{color:#8493a8}
+html[data-theme="dark"] .sideMenuOptions button,html[data-theme="dark"] .sideTheme{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+html[data-theme="dark"] .sideMenuOptions button.active{background:#16264a;border-color:#3158a8;color:#76cfff;box-shadow:none}
 html[data-theme="dark"] .subtitle,html[data-theme="dark"] .sectionIntro>p,html[data-theme="dark"] .categoryText,html[data-theme="dark"] .knowledgeCard p{color:#98a7bb}
 html[data-theme="dark"] .title{color:#f8fafc}
 html[data-theme="dark"] .heroAccent{color:#67d9ff}
