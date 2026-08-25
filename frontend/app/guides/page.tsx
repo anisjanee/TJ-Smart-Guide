@@ -3,43 +3,24 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-type Guide = {
-  id: string;
-  title: string;
-  icon: string;
-  summary: string;
-  whatYouGet: string[];
-  documents: string[];
-  action: string;
-  source: string;
-  sourceLabel: string;
-};
+type Guide = { id:string; title:string; icon:string; summary:string; items:string[]; action:string; source:string; sourceLabel:string };
 
 const guides: Guide[] = [
-  { id: "passport", title: "Паспорт", icon: "🪪", summary: "Собранная карточка по обращению за паспортом: что подготовить, куда обращаться и где проверить актуальные требования.", whatYouGet: ["Чек-лист подготовки", "Подсказки по месту обращения", "Официальный источник"], documents: ["Документ, удостоверяющий личность, если он уже есть", "Документы, предусмотренные конкретной процедурой", "Дополнительные документы только если их требует выбранная услуга"], action: "Перед обращением сверяйте текущие требования, срок и размер сбора на государственном портале.", source: "https://egov.tj/", sourceLabel: "Официальный eGov.tj →" },
-  { id: "birth", title: "Свидетельство о рождении", icon: "👶", summary: "Собранная точка входа для регистрации рождения и проверки требований органов ЗАГС.", whatYouGet: ["Что подготовить", "Какие сведения понадобятся", "Официальный источник и контакты"], documents: ["Документы родителей/заявителя", "Сведения о ребёнке", "Документы, подтверждающие обстоятельства регистрации, если они требуются"], action: "Проверьте действующие требования и форму обращения на официальном государственном ресурсе.", source: "https://egov.tj/", sourceLabel: "Официальный eGov.tj →" },
-  { id: "education-cve", title: "Поступление через ЦВЭ", icon: "🎓", summary: "Актуальная навигация по ЦВЭ-2026: регистрация, документы, личный кабинет и результаты.", whatYouGet: ["Документы для регистрации", "Периоды регистрации", "Личный кабинет", "Получение результатов"], documents: ["Документ, подтверждающий личность", "Документ об образовании или справка об обучении", "Подтверждение оплаты, если услуга платная", "Документы на льготы, если они есть"], action: "Для ЦВЭ-2026 точные периоды и требования публикует Национальный центр тестирования.", source: "https://ntc.tj/ru/abiturientu/spravochnik-2026.html", sourceLabel: "Справочник абитуриента НЦТ-2026 →" },
-  { id: "job", title: "Поиск работы", icon: "💼", summary: "Готовая точка входа к национальной базе вакансий и государственным службам занятости.", whatYouGet: ["Вакансии на kor.tj", "Контакты служб занятости", "Профессиональное обучение"], documents: ["Резюме", "Документы об образовании и квалификации при наличии", "Документ, удостоверяющий личность, когда он нужен для конкретной услуги"], action: "Начните с национальной базы вакансий или выберите территориальное подразделение службы занятости.", source: "https://www.kor.tj/", sourceLabel: "Национальная база вакансий kor.tj →" },
-  { id: "business", title: "Начать бизнес", icon: "🏢", summary: "Подготовка к регистрации деятельности, официальные сервисы и базовая навигация по бизнес-вопросам.", whatYouGet: ["Чек-лист подготовки", "Официальные сервисы", "Навигация по налоговым вопросам"], documents: ["Документ, удостоверяющий личность", "Сведения для регистрации выбранной формы деятельности", "Дополнительные документы по конкретному виду деятельности"], action: "Определите форму деятельности и проверяйте действующие требования на государственных ресурсах.", source: "https://egov.tj/", sourceLabel: "Официальный eGov.tj →" },
-  { id: "services", title: "Госуслуги", icon: "🏛️", summary: "Единая точка входа к государственным сервисам вместо набора случайных инструкций из интернета.", whatYouGet: ["Поиск нужной услуги", "Официальные контакты", "Государственные источники"], documents: ["Зависит от выбранной услуги", "Перед обращением сервис показывает известные требования"], action: "Выберите конкретную услугу, чтобы получить её данные и официальный источник.", source: "https://egov.tj/", sourceLabel: "eGov.tj →" },
+  { id:"education", title:"Образование", icon:"🎓", summary:"Поступление, ЦВЭ, документы для обучения и официальная информация образовательных органов.", items:["ЦВЭ и регистрация", "Документы для поступления", "Справочники и результаты", "Профессиональное образование"], action:"Выберите нужную образовательную услугу и проверьте требования, сроки и официальный источник.", source:"https://egov.tj/site/tahsilot-tj?lang=ru", sourceLabel:"Официальный источник →" },
+  { id:"government", title:"Госуслуги", icon:"🏛️", summary:"Государственные услуги и цифровые сервисы для граждан в одном месте.", items:["Государственные услуги", "Жизненные ситуации", "Официальные контакты", "Электронные сервисы"], action:"Найдите нужную услугу и переходите к официальному государственному ресурсу.", source:"https://egov.tj/", sourceLabel:"eGov.tj →" },
+  { id:"notary", title:"Нотариальные услуги", icon:"✍️", summary:"Нотариат, государственная регистрация и юридические действия через официальные ресурсы Министерства юстиции.", items:["Государственный нотариат", "Апостилирование", "Регистрация документов", "Бесплатная юридическая помощь"], action:"Определите нужное нотариальное действие и проверьте актуальные требования перед обращением.", source:"https://egov.tj/site/adliya-tj?lang=ru", sourceLabel:"Министерство юстиции →" },
+  { id:"medicine", title:"Медицина", icon:"⚕️", summary:"Государственная информация о медицинских услугах, здоровье и системе здравоохранения.", items:["Медицинские услуги", "Охрана здоровья", "Государственные программы", "Официальные контакты"], action:"Для медицинских вопросов используйте официальную информацию Министерства здравоохранения и социальной защиты населения.", source:"https://egov.tj/site/minzdrav-tjk?lang=ru", sourceLabel:"Министерство здравоохранения →" },
+  { id:"social-insurance", title:"Социальное страхование", icon:"🛡️", summary:"Пенсионное обеспечение, социальная защита и обязательное и добровольное социальное страхование.", items:["Пенсионное обеспечение", "Социальная защита", "Обязательное страхование", "Добровольное социальное страхование"], action:"Выберите направление и сверяйте актуальные правила и контакты Агентства социального страхования и пенсий.", source:"https://egov.tj/site/nafaka-tj?lang=ru", sourceLabel:"Агентство социального страхования и пенсий →" }
 ];
 
-export default function GuidesPage() {
-  const [query, setQuery] = useState("");
-  const filtered = useMemo(() => guides.filter((g) => `${g.title} ${g.summary} ${g.whatYouGet.join(" ")}`.toLowerCase().includes(query.toLowerCase())), [query]);
-  return (
-    <main className="subPage"><div className="subContainer">
-      <nav className="subNav"><Link href="/">🇹🇯 TJ Smart Guide</Link><Link href="/">Главная</Link></nav>
-      <header className="pageHeader"><span className="eyebrow">Госуслуги</span><h1>Получите нужные данные в одном месте</h1><p>Здесь пользователь не должен искать инструкцию о том, где искать информацию. Выберите услугу и сразу получите чек-лист, полезные сведения и официальный источник.</p></header>
-      <div className="pageSearch"><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Например: паспорт, ЦВЭ, работа..." aria-label="Поиск услуги" /></div>
-      <section className="guideGrid">{filtered.map((guide) => <article className="guideCard" key={guide.id}>
-        <div className="guideIcon">{guide.icon}</div><h2>{guide.title}</h2><p>{guide.summary}</p>
-        <h3>Что здесь есть</h3><ul>{guide.whatYouGet.map((item) => <li key={item}>{item}</li>)}</ul>
-        <h3>Подготовьте</h3><ul>{guide.documents.map((item) => <li key={item}>{item}</li>)}</ul>
-        <div className="actionBox"><strong>Что делать сейчас</strong><span>{guide.action}</span></div>
-        <a className="sourceButton" href={guide.source} target="_blank" rel="noreferrer">{guide.sourceLabel}</a>
-      </article>)}</section>
-      {filtered.length === 0 && <div className="emptyState">По этому запросу пока нет готового материала. Попробуйте другое название услуги.</div>}
-    </div></main>
-  );
+export default function GuidesPage(){
+  const [query,setQuery]=useState("");
+  const filtered=useMemo(()=>guides.filter(g=>`${g.title} ${g.summary} ${g.items.join(" ")}`.toLowerCase().includes(query.trim().toLowerCase())),[query]);
+  return <main className="subPage"><div className="subContainer">
+    <nav className="subNav"><Link href="/" className="samBrand"><span className="samLogo">С</span><span>САМТ</span></Link><Link href="/">Главная</Link></nav>
+    <header className="pageHeader"><span className="eyebrow">САМТ · Каталог услуг</span><h1>Найдите нужную услугу</h1><p>Пять основных направлений. Выберите категорию и получите конкретную информацию, официальный источник и следующий шаг.</p></header>
+    <div className="pageSearch"><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Поиск: ЦВЭ, нотариус, медицина, пенсия…" aria-label="Поиск по категориям САМТ" /></div>
+    <section className="guideGrid">{filtered.map(g=><article className="guideCard" key={g.id}><div className="guideIcon">{g.icon}</div><h2>{g.title}</h2><p>{g.summary}</p><h3>Что можно найти</h3><ul>{g.items.map(item=><li key={item}>{item}</li>)}</ul><div className="actionBox"><strong>Следующий шаг</strong><span>{g.action}</span></div><a className="sourceButton" href={g.source} target="_blank" rel="noreferrer">{g.sourceLabel}</a></article>)}</section>
+    {filtered.length===0&&<div className="emptyState">Ничего не найдено. Попробуйте название услуги или одно из пяти направлений.</div>}
+  </div></main>
 }
