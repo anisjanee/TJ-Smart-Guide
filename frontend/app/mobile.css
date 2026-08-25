@@ -4,13 +4,23 @@
   body{overflow-x:hidden;width:100%;min-width:0}
   .container,.subContainer{width:calc(100% - 24px);max-width:none}
   .hero{min-height:auto;padding:12px 0 48px}
-  .nav{display:flex;flex-direction:column;align-items:stretch;gap:12px;width:100%}
-  .brandButton{align-self:flex-start;min-height:44px;display:inline-flex;align-items:center}
+
+  /* Keep the existing header on one horizontal row on phones. */
+  .nav{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:58px;padding:8px 10px}
+  .brandButton{align-self:center;min-height:42px;min-width:0;display:inline-flex;align-items:center;flex:1;text-align:left;overflow:hidden}
   .brand{font-size:18px;white-space:nowrap}
+  .brandName{min-width:0;display:flex;flex-direction:column;justify-content:center;line-height:1.05;overflow:hidden}
+  .brandName b{font-size:18px}
+  .brandName small{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .logoMark{display:flex;flex:0 0 auto}
+  .logoMark svg{width:36px;height:36px}
+  .menuButton{flex:0 0 42px;width:42px;height:42px;min-width:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:12px;font-size:21px}
+  .desktopNav{display:none!important}
+
   .flag{font-size:24px}
   .nav>.adminActions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .nav>.adminActions .badge{width:100%;min-width:0;min-height:44px;padding:9px 8px;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.2;font-size:12px;border-radius:12px}
-  .heroContent{margin-top:48px;max-width:100%;width:100%}
+  .heroContent{margin-top:40px;max-width:100%;width:100%}
   .eyebrow{font-size:11px}
   .title{font-size:clamp(38px,12.5vw,54px);line-height:1;letter-spacing:-.045em;overflow-wrap:anywhere}
   .subtitle{font-size:15px;line-height:1.55;margin:18px auto 22px;max-width:620px}
@@ -71,8 +81,13 @@
 }
 @media(max-width:430px){
   .container,.subContainer{width:calc(100% - 20px)}
+  .nav{min-height:54px;padding:7px 8px}
+  .logoMark svg{width:34px;height:34px}
+  .brandName b{font-size:17px}
+  .brandName small{font-size:8px}
+  .menuButton{width:40px;height:40px;min-width:40px;flex-basis:40px}
   .nav>.adminActions{grid-template-columns:1fr 1fr}
-  .heroContent{margin-top:40px}
+  .heroContent{margin-top:36px}
   .title{font-size:clamp(36px,12.5vw,50px)}
   .subtitle{font-size:14px}
   .categories,.knowledgeList,.guideGrid,.featureGrid{grid-template-columns:1fr}
@@ -86,6 +101,10 @@
   .container,.subContainer{width:calc(100% - 16px)}
   .nav>.adminActions{grid-template-columns:1fr}
   .brand{font-size:16px}
+  .brandName b{font-size:16px}
+  .brandName small{display:none}
+  .logoMark svg{width:32px;height:32px}
+  .menuButton{width:38px;height:38px;min-width:38px;flex-basis:38px}
   .title{font-size:34px}
   .categories,.knowledgeList,.statsGrid{grid-template-columns:1fr}
 }
