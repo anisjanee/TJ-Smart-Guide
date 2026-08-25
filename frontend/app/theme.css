@@ -1,0 +1,17 @@
+/* SAMT theme system. Light is the default; dark is opt-in via html[data-theme="dark"]. */
+html[data-theme="light"] body{background:#f6f8fc;color:#101828}
+html[data-theme="dark"] body{background:#070b16;color:#f8fafc}
+html[data-theme="dark"] .hero{background:radial-gradient(circle at 50% 0,rgba(37,99,235,.2),transparent 36%),#070b16}
+html[data-theme="dark"] .badge{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.12);color:#dbe7f8}
+html[data-theme="dark"] .subtitle,html[data-theme="dark"] .sectionIntro>p,html[data-theme="dark"] .categoryText,html[data-theme="dark"] .knowledgeCard p{color:#98a7bb}
+html[data-theme="dark"] .title{color:#f8fafc}
+html[data-theme="dark"] .heroAccent{color:#67d9ff}
+html[data-theme="dark"] .search,html[data-theme="dark"] .knowledgeSearch{background:rgba(10,18,35,.88);border-color:rgba(255,255,255,.12);box-shadow:0 20px 65px rgba(0,0,0,.35)}
+html[data-theme="dark"] .search input,html[data-theme="dark"] .knowledgeSearch input{color:#fff}
+html[data-theme="dark"] .search input::placeholder,html[data-theme="dark"] .knowledgeSearch input::placeholder{color:#718198}
+html[data-theme="dark"] .answerCard,html[data-theme="dark"] .category,html[data-theme="dark"] .knowledgeCard{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.1);color:#f8fafc;box-shadow:0 16px 45px rgba(0,0,0,.2)}
+html[data-theme="dark"] .category:hover{border-color:#4f7cff;box-shadow:0 20px 45px rgba(0,0,0,.3)}
+html[data-theme="dark"] .feedback button{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);color:#fff}
+html[data-theme="dark"] .toast{background:#111827}
+html[data-theme="dark"] .errorMessage{background:rgba(154,47,0,.16);color:#ffb18a;border-color:rgba(255,177,138,.2)}
+html[data-theme="dark"] .knowledgeCard a,html[data-theme="dark"] .sourceLink{color:#76cfff}
