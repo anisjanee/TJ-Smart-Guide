@@ -24,6 +24,42 @@ import json
 
 _catalog_path = Path(__file__).resolve().parents[2] / "frontend" / "data" / "services-catalog.json"
 _CATEGORY_MAP = {"health": "medicine", "medicine": "medicine"}
+_RU_ALIASES = {
+    "авто": "автомобиль машина",
+    "машина": "автомобиль авто транспорт",
+    "вуз": "университет поступление",
+    "универ": "университет",
+    "детсад": "детский сад",
+    "доктор": "врач медицинская помощь",
+    "больница": "медицинское учреждение",
+    "лекарство": "лекарства рецепт",
+    "пенсию": "пенсия",
+    "пенсии": "пенсия",
+    "кормильца": "кормилец потеря кормильца",
+    "пособие": "пособия социальная выплата",
+    "пособия": "пособие социальная выплата",
+    "доверенность": "доверенности",
+    "паспортный": "паспорт документы удостоверение личности",
+    "аттестат": "образование школа",
+    "диплом": "образование университет",
+    "больничный": "временная нетрудоспособность медицинская справка",
+}
+_TG_ALIASES = {
+    "шиноснома": "паспорт документ удостоверение личности",
+    "нафақа": "пенсия",
+    "кӯмакпулӣ": "пособие социальная выплата",
+    "духтур": "врач медицинская помощь",
+    "беморхона": "больница медицинское учреждение",
+    "донишгоҳ": "университет образование",
+    "мактаб": "школа образование",
+    "таҳсил": "образование обучение",
+    "мерос": "наследство",
+    "ваколатнома": "доверенность",
+    "кӯдак": "ребёнок детское здоровье",
+    "оила": "семья дети",
+    "никоҳ": "брак семья",
+}
+
 try:
     with _catalog_path.open("r", encoding="utf-8") as _f:
         _catalog = json.load(_f)
@@ -31,13 +67,19 @@ try:
         _backend_category = _CATEGORY_MAP.get(_category.get("id"), _category.get("id"))
         for _section in _category.get("sections", []):
             for _item in _section.get("items", []):
+                _alias_terms = []
+                _normalized_item = str(_item).lower()
+                for _source, _targets in {**_RU_ALIASES, **_TG_ALIASES}.items():
+                    if _source in _normalized_item or any(_source in str(_section.get(k, "")).lower() for k in ("title_ru", "title_tg")):
+                        _alias_terms.extend(_targets.split())
                 OFFICIAL_ARTICLES.append({
                     "category": _backend_category,
                     "title": _item,
-                    "summary": f"{_section.get('title_ru', '')}: {_item}",
+                    "summary": f"{_section.get('title_ru', '')}: {_item}. Поисковые варианты: {' '.join(sorted(set(_alias_terms)))}" if _alias_terms else f"{_section.get('title_ru', '')}: {_item}",
                     "content": (
                         f"Услуга или документ относится к разделу «{_section.get('title_ru', '')}» "
                         f"категории «{_category.get('title_ru', '')}». "
+                        f"Пользовательские варианты запроса могут включать: {' '.join(sorted(set(_alias_terms)))}. "
                         "В базе САМТ пока хранится индекс услуги. "
                         "Требования, документы, сроки и стоимость не считаются подтверждёнными, "
                         "пока они не проверены по официальному источнику."
