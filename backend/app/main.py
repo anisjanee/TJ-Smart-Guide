@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -11,8 +12,10 @@ from .database import Base, SessionLocal
 from .models import Category, Feedback, KnowledgeArticle, QuestionLog
 from .official_data import OFFICIAL_ARTICLES
 
+logger = logging.getLogger("samt-api")
+
 SYSTEM_PROMPT = """
-Ты — TJ Smart Guide, цифровой помощник по Таджикистану.
+Ты — САМТ, цифровой помощник по Таджикистану.
 Отвечай понятно, кратко и по существу. Пользователь может писать на русском или таджикском, отвечай на языке вопроса.
 Если в базе знаний есть релевантные материалы, используй их как контекст и не противоречь им.
 Не выдумывай государственные процедуры, цены, адреса, сроки или требования. Если проверенной информации нет, прямо скажи об этом.
@@ -32,8 +35,8 @@ SEED_ARTICLES = [
     ("government", "Единый государственный интернет-портал", "Официальная точка входа для информации о государственных услугах Таджикистана.", "Портал содержит разделы для граждан и бизнеса, включая государственные услуги, трудоустройство, правовую помощь, транспорт, лицензирование и регистрацию бизнеса. Перед важными действиями проверяйте актуальные требования непосредственно на официальном портале.", "EGOV.TJ", "https://egov.tj/"),
     ("education", "Министерство образования и науки", "Официальный сайт Министерства образования и науки Республики Таджикистан.", "На сайте публикуются официальные документы, новости и полезные материалы для учащихся, родителей, учителей и образовательных учреждений.", "Министерство образования и науки РТ", "https://maorif.tj/"),
     ("business", "Электронные налоговые сервисы", "Официальные электронные сервисы Налогового комитета Республики Таджикистан.", "Официальный портал предоставляет электронные сервисы для налогоплательщиков, включая личный кабинет, электронные декларации и отдельные налоговые сервисы. Конкретные требования нужно проверять в актуальных материалах Налогового комитета.", "Налоговый комитет РТ", "https://services.andoz.tj/"),
-    ("jobs", "Государственные ресурсы по трудоустройству", "EGOV.TJ содержит разделы, связанные с трудоустройством и занятостью.", "При поиске официальной информации о трудоустройстве сначала проверяйте разделы EGOV.TJ и соответствующие государственные ресурсы. TJ Smart Guide должен показывать источник и дату проверки для меняющихся требований.", "EGOV.TJ", "https://egov.tj/"),
-    ("government", "Цифровизация государственных услуг", "В Таджикистане развивается единая цифровая инфраструктура государственных услуг.", "Официальные цифровые ресурсы объединяют информацию о государственных органах и услугах. TJ Smart Guide будет использовать официальные источники как основу базы знаний, а не заменять их.", "EGOV.TJ", "https://egov.tj/"),
+    ("jobs", "Государственные ресурсы по трудоустройству", "EGOV.TJ содержит разделы, связанные с трудоустройством и занятостью.", "При поиске официальной информации о трудоустройстве сначала проверяйте разделы EGOV.TJ и соответствующие государственные ресурсы. САМТ должен показывать источник и дату проверки для меняющихся требований.", "EGOV.TJ", "https://egov.tj/"),
+    ("government", "Цифровизация государственных услуг", "В Таджикистане развивается единая цифровая инфраструктура государственных услуг.", "Официальные цифровые ресурсы объединяют информацию о государственных органах и услугах. САМТ будет использовать официальные источники как основу базы знаний, а не заменять их.", "EGOV.TJ", "https://egov.tj/"),
 ]
 
 
@@ -66,7 +69,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="TJ Smart Guide API", version="0.5.0", lifespan=lifespan)
+app = FastAPI(title="САМТ API", version="0.5.1", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -102,7 +105,7 @@ class AdminArticleUpdate(AdminArticleCreate):
 
 
 def get_client() -> OpenAI:
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
         raise HTTPException(status_code=503, detail="OPENAI_API_KEY is not configured")
     return OpenAI(api_key=api_key)
@@ -143,7 +146,7 @@ def health():
                 db_ok = True
         except Exception:
             db_ok = False
-    return {"status": "ok", "service": "TJ Smart Guide API", "ai_configured": bool(os.getenv("OPENAI_API_KEY")), "database_configured": database_ready(), "database_connected": db_ok, "admin_configured": bool(os.getenv("ADMIN_TOKEN"))}
+    return {"status": "ok", "service": "САМТ API", "ai_configured": bool(os.getenv("OPENAI_API_KEY", "").strip()), "database_configured": database_ready(), "database_connected": db_ok, "admin_configured": bool(os.getenv("ADMIN_TOKEN", "").strip()), "model": os.getenv("OPENAI_MODEL", "gpt-5")}
 
 
 @app.get("/api/categories")
@@ -191,12 +194,19 @@ def chat(payload: ChatRequest):
             if articles:
                 context = "\n\nБАЗА ЗНАНИЙ:\n" + "\n\n".join(f"[{article.title}] {article.content} Источник: {article.source_name or 'не указан'} {article.source_url or ''}" for article in articles)
                 sources = [{"title": article.title, "name": article.source_name or "Источник", "url": article.source_url or ""} for article in articles if article.source_url]
+    model = os.getenv("OPENAI_MODEL", "gpt-5").strip() or "gpt-5"
     try:
-        response = client.responses.create(model=os.getenv("OPENAI_MODEL", "gpt-5.6"), instructions=SYSTEM_PROMPT + context, input=payload.question.strip())
+        response = client.responses.create(
+            model=model,
+            instructions=SYSTEM_PROMPT + context,
+            input=payload.question.strip(),
+        )
     except Exception as exc:
+        logger.exception("OpenAI request failed: model=%s error_type=%s", model, type(exc).__name__)
         raise HTTPException(status_code=502, detail="AI service request failed") from exc
-    answer = response.output_text.strip()
+    answer = (response.output_text or "").strip()
     if not answer:
+        logger.error("OpenAI returned an empty response: model=%s", model)
         raise HTTPException(status_code=502, detail="AI returned an empty response")
     log_id = None
     if database_ready():
