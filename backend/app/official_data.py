@@ -17,29 +17,29 @@ OFFICIAL_ARTICLES = [
     {"category":"social-insurance","title":"Основные пенсионные показатели","summary":"Актуальные показатели, опубликованные Агентством социального страхования и пенсий.","content":"На официальном сайте Агентства опубликованы основные показатели отрасли с датой состояния данных. Показатели могут меняться, поэтому САМТ должен показывать дату проверки и ссылку на первоисточник вместо хранения их как постоянных значений.","source_name":"Агентство социального страхования и пенсий при Правительстве РТ","source_url":"https://nafaka.tj/ru/"}
 ]
 
-# Add the user-facing service catalog to the backend knowledge seed.
-# These records are navigation/index data only: no legal requirements, prices,
-# deadlines or procedures are invented here. Such facts must be added only
-# after verification against an official source.
+# Index the service catalog as internal AI knowledge. These entries identify
+# services but do not invent legal requirements, prices, deadlines or procedures.
 from pathlib import Path
 import json
 
 _catalog_path = Path(__file__).resolve().parents[2] / "frontend" / "data" / "services-catalog.json"
+_CATEGORY_MAP = {"health": "medicine", "medicine": "medicine"}
 try:
     with _catalog_path.open("r", encoding="utf-8") as _f:
         _catalog = json.load(_f)
     for _category in _catalog.get("categories", []):
+        _backend_category = _CATEGORY_MAP.get(_category.get("id"), _category.get("id"))
         for _section in _category.get("sections", []):
             for _item in _section.get("items", []):
                 OFFICIAL_ARTICLES.append({
-                    "category": _category["id"],
+                    "category": _backend_category,
                     "title": _item,
                     "summary": f"{_section.get('title_ru', '')}: {_item}",
                     "content": (
                         f"Услуга или документ относится к разделу «{_section.get('title_ru', '')}» "
                         f"категории «{_category.get('title_ru', '')}». "
-                        "В базе САМТ пока хранится только индекс услуги. "
-                        "Требования, документы, сроки и стоимость нельзя считать подтверждёнными, "
+                        "В базе САМТ пока хранится индекс услуги. "
+                        "Требования, документы, сроки и стоимость не считаются подтверждёнными, "
                         "пока они не проверены по официальному источнику."
                     ),
                     "source_name": None,
